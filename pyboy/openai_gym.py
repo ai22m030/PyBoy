@@ -166,7 +166,8 @@ class PyBoyGymEnv(Env):
             self.game_wrapper.reset_game()
         self.last_fitness = self.game_wrapper.fitness
         self.button_is_pressed = {button: False for button in self._buttons}
-        return self._get_observation()
+
+        return self._get_observation(), {}
 
     def render(self):
         pass

@@ -9,8 +9,8 @@ from .botsupport.constants import TILES
 from .utils import WindowEvent
 
 try:
-    from gym import Env
-    from gym.spaces import Discrete, MultiDiscrete, Box
+    from gymnasium import Env
+    from gymnasium.spaces import Discrete, MultiDiscrete, Box
     enabled = True
 except ImportError:
 
@@ -152,10 +152,13 @@ class PyBoyGymEnv(Env):
         observation = self._get_observation()
         done = pyboy_done or self.game_wrapper.game_over()
 
-        return observation, reward, done, info
+        return observation, reward, done, False, info
 
-    def reset(self):
+    def reset(self, seed=None, options=None):
         """ Reset (or start) the gym environment throught the game_wrapper """
+        # We need the following line to seed self.np_random
+        super().reset(seed=seed)
+
         if not self._started:
             self.game_wrapper.start_game(**self._kwargs)
             self._started = True

@@ -65,15 +65,13 @@ class PyBoyGymEnv(Env):
         self._DO_NOTHING = WindowEvent.PASS
         self._buttons = [
             WindowEvent.PRESS_ARROW_UP, WindowEvent.PRESS_ARROW_DOWN, WindowEvent.PRESS_ARROW_RIGHT,
-            WindowEvent.PRESS_ARROW_LEFT, WindowEvent.PRESS_BUTTON_A, WindowEvent.PRESS_BUTTON_B,
-            WindowEvent.PRESS_BUTTON_SELECT, WindowEvent.PRESS_BUTTON_START
+            WindowEvent.PRESS_ARROW_LEFT, WindowEvent.PRESS_BUTTON_A, WindowEvent.PRESS_BUTTON_B
         ]
         self._button_is_pressed = {button: False for button in self._buttons}
 
         self._buttons_release = [
             WindowEvent.RELEASE_ARROW_UP, WindowEvent.RELEASE_ARROW_DOWN, WindowEvent.RELEASE_ARROW_RIGHT,
-            WindowEvent.RELEASE_ARROW_LEFT, WindowEvent.RELEASE_BUTTON_A, WindowEvent.RELEASE_BUTTON_B,
-            WindowEvent.RELEASE_BUTTON_SELECT, WindowEvent.RELEASE_BUTTON_START
+            WindowEvent.RELEASE_ARROW_LEFT, WindowEvent.RELEASE_BUTTON_A, WindowEvent.RELEASE_BUTTON_B
         ]
         self._release_button = {button: r_button for button, r_button in zip(self._buttons, self._buttons_release)}
 

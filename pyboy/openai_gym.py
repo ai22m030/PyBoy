@@ -170,7 +170,7 @@ class PyBoyGymEnv(Env):
         return self._get_observation(), {}
 
     def render(self):
-        return repr(self.game_wrapper)
+        print(repr(self.game_wrapper))
 
     def close(self):
         self.pyboy.stop(save=False)

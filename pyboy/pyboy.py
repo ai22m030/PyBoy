@@ -290,7 +290,7 @@ class PyBoy:
             A Gym environment based on the `Pyboy` object.
         """
         if gym_enabled:
-            return PyBoyGymEnv(self, observation_type, action_type, simultaneous_actions, **kwargs)
+            return PyBoyGymEnv(self, observation_type, action_type, simultaneous_actions, render_mode='human', **kwargs)
         else:
             logger.error("%s: Missing dependency \"gym\". ", __name__)
             return None

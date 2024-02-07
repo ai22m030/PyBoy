@@ -49,7 +49,8 @@ class PyBoyGymEnv(Env):
     """
     metadata = {"render_modes": ["human"]}
 
-    def __init__(self, pyboy, observation_type="tiles", action_type="toggle", simultaneous_actions=False, render_mode="human", **kwargs):
+    def __init__(self, pyboy, observation_type="tiles", action_type="toggle", simultaneous_actions=False,
+                 render_mode="human", **kwargs):
         # Build pyboy game
         self.render_mode = render_mode
         self.pyboy = pyboy

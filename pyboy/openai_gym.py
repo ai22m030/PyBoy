@@ -47,8 +47,11 @@ class PyBoyGymEnv(Env):
         actions (list): The list of input IDs of allowed input for the agent (depends of action_type).
 
     """
-    def __init__(self, pyboy, observation_type="tiles", action_type="toggle", simultaneous_actions=False, **kwargs):
+    metadata = {"render_modes": ["human"]}
+
+    def __init__(self, pyboy, observation_type="tiles", action_type="toggle", simultaneous_actions=False, render_mode="human", **kwargs):
         # Build pyboy game
+        self.render_mode = render_mode
         self.pyboy = pyboy
         if str(type(pyboy)) != "<class 'pyboy.pyboy.PyBoy'>":
             raise TypeError("pyboy must be a Pyboy object")

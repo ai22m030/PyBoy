@@ -74,32 +74,14 @@ for i, tile_list in enumerate(minimal_list):
 
 tiles_mario = np.zeros(TILES, dtype=np.uint8)
 mario_list = [
-    base_scripts,
-    plane,
-    submarine,
-    coin,
-    mushroom,
-    heart,
-    star,
-    lever,
-    neutral_blocks,
-    moving_blocks,
-    pushable_blokcs,
-    question_block,
-    pipes,
-    goomba,
-    koopa,
-    plant,
-    moth,
-    flying_moth,
-    sphinx,
-    big_sphinx,
-    fist,
-    bill,
-    projectiles,
-    shell,
-    explosion,
-    spike,
+    base_scripts + plane + submarine,  # This is mario. Need to be 1
+    coin,  # Positive: Collect coins
+    mushroom + heart + star + lever,  # Positive: Make mario better
+    neutral_blocks + moving_blocks,  # Positive: This is the ground where mario can walk
+    pushable_blokcs + question_block,  # Positive: Mario can walk on it and can contain power-ups or coins
+    pipes,  # Positive: This is the ground where mario can walk
+    goomba + koopa + moth + flying_moth + sphinx,  # Negative: Enemy that can be killed easy
+    big_sphinx + fist + bill + projectiles + shell + explosion + spike + plant,  # Negative: Hard to kill enemy
 ]
 for i, tile_list in enumerate(mario_list):
     for tile in tile_list:
@@ -303,23 +285,32 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
         self._set_timer_div(timer_div)
 
     def custom_minimal(self):
-        space = self._game_area_np("minimal")
+        space = self._game_area_np("mario")
 
         # Mario remains 1
-        # Assuming '1' uniquely identifies Mario; adjust if necessary
         space = np.where(space == 1, 1, space)
 
-        # Enemies become -1
-        # '4' represents enemies; adjust the array as necessary for all enemy types
-        space = np.where(np.isin(space, [4]), -1, space)
+        # Assign unique values to each category
+        # Power-ups (coins)
+        space = np.where(space == 2, 0.75, space)
 
-        # Ground and platforms where Mario can walk become 0.5
-        # Assuming '3' represents ground/platforms; adjust the array as necessary for all types
-        space = np.where(np.isin(space, [3]), 0.5, space)
+        # Beneficial items (mushroom, heart, star, lever)
+        space = np.where(space == 3, 0.85, space)
 
-        # Power-ups and beneficial items become 0.75
-        # '2' represents power-ups; adjust the array as necessary for all beneficial item types
-        space = np.where(np.isin(space, [2]), 0.75, space)
+        # Ground and platforms (neutral_blocks + moving_blocks)
+        space = np.where(space == 4, 0.5, space)
+
+        # Platforms that can contain power-ups or coins (pushable_blocks + question_block)
+        space = np.where(space == 5, 0.6, space)
+
+        # Pipes
+        space = np.where(space == 6, 0.55, space)
+
+        # Easy to kill enemies (goomba, koopa, etc.)
+        space = np.where(space == 7, -0.75, space)
+
+        # Hard to kill enemies (big_sphinx, fist, etc.)
+        space = np.where(space == 8, -1, space)
 
         return space
 
@@ -328,6 +319,7 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
 
         space_mario_as_enemy = np.where(space == 1, 11, space)
         space_enemies_as_mario = np.where(space_mario_as_enemy == -1, 12, space_mario_as_enemy)
+        space_enemies_as_mario = np.where(space_enemies_as_mario == -0.75, 12, space_enemies_as_mario)
 
         space_enemies_as_mario = np.where(space_enemies_as_mario == 11, -1, space_enemies_as_mario)
         space_enemies_as_mario = np.where(space_enemies_as_mario == 12, 1, space_enemies_as_mario)
@@ -338,19 +330,32 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
 
     def custom_minimal_policy(self):
         # Process the game area using the existing method to normalize the space
-        space = self.custom_minimal()
+        space = np.where(self.custom_minimal_enemy() == 1, 0, self.custom_minimal_enemy())
+        space = np.where(space == -1, 0, space)
 
+        # Find the most right position and place marion there (2x2 matrix)
         rows, cols = space.shape
-        for col in range(cols):
-            for row in range(rows - 1, 0, -1):  # Start from the bottom row and go upwards
-                if space[row, col] == 0.5:
-                    # Check the two cells above if they are zeros and if the row above exists
-                    if row - 2 >= 0 and space[row - 1, col] == 0 and space[row - 2, col] == 0:
-                        # Update the zeros as required. For example, set them to 1 or any other operation needed
-                        space[row - 1, col] = 1  # Update this line as per your requirement
-                        space[row - 2, col] = 1  # Update this line as per your requirement
-                        # After updating, break to move to the next column as we only update the first two zeros found
-                        break
+
+        # Define the values for ground, pipes, and platforms
+        suitable_tiles = [0.5, 0.55, 0.6]
+
+        # Scan from right to left, looking for the first suitable position
+        for col in range(cols - 1, -1, -1):
+            for row in range(rows - 1):
+                # Check if the cell below the current position is suitable for standing (ground, pipes, or platforms)
+                if space[row + 1, col] in suitable_tiles:
+                    # Check if there's enough space above and to the left to place the 2x2 Mario
+                    if row - 1 >= 0 and col - 1 >= 0:
+                        # Check if the surrounding space is empty or also suitable for standing
+                        if (space[row, col - 1] in [0] + suitable_tiles and space[
+                            row + 1, col - 1] in suitable_tiles and
+                                space[row - 1, col] in [0] and space[row - 1, col - 1] in [0]):
+                            # Place Mario as a 2x2 matrix of ones
+                            space[row, col] = 1  # Bottom right
+                            space[row - 1, col] = 1  # Top right
+                            space[row, col - 1] = 1  # Bottom left
+                            space[row - 1, col - 1] = 1  # Top left
+                            return space  # Return the updated space with Mario placed
 
         return space
 

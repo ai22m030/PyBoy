@@ -252,6 +252,13 @@ class PyBoyGameWrapper(PyBoyPlugin):
                 raise AttributeError(
                     f"Game wrapper miss the attribute tiles_minimal for observation_type : {observation_type}"
                 )
+        elif observation_type == "mario":
+            try:
+                return self.tiles_mario[np.asarray(self.game_area(), dtype=np.uint16)]
+            except AttributeError:
+                raise AttributeError(
+                    f"Game wrapper miss the attribute tiles_mario for observation_type : {observation_type}"
+                )
         else:
             raise ValueError(f"Invalid observation_type : {observation_type}")
 

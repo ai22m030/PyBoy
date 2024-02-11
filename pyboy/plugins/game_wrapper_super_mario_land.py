@@ -62,15 +62,49 @@ spike = [237]
 TILES = 384
 tiles_minimal = np.zeros(TILES, dtype=np.uint8)
 minimal_list = [
-    base_scripts + plane + submarine,
-    coin + mushroom + heart + star + lever,
-    neutral_blocks + moving_blocks + pushable_blokcs + question_block + pipes,
+    base_scripts + plane + submarine,  # Positive: This is mario
+    coin + mushroom + heart + star + lever,  # Positive: Make mario better
+    neutral_blocks + moving_blocks + pushable_blokcs + question_block + pipes,  # Positive: This is the ground where mario can walk
     goomba + koopa + plant + moth + flying_moth + sphinx + big_sphinx + fist + bill + projectiles + shell + explosion +
-    spike,
+    spike,  # Negative: This is an enemy
 ]
 for i, tile_list in enumerate(minimal_list):
     for tile in tile_list:
         tiles_minimal[tile] = i + 1
+
+tiles_mario = np.zeros(TILES, dtype=np.uint8)
+mario_list = [
+    base_scripts,
+    plane,
+    submarine,
+    coin,
+    mushroom,
+    heart,
+    star,
+    lever,
+    neutral_blocks,
+    moving_blocks,
+    pushable_blokcs,
+    question_block,
+    pipes,
+    goomba,
+    koopa,
+    plant,
+    moth,
+    flying_moth,
+    sphinx,
+    big_sphinx,
+    fist,
+    bill,
+    projectiles,
+    shell,
+    explosion,
+    spike,
+]
+for i, tile_list in enumerate(mario_list):
+    for tile in tile_list:
+        tiles_mario[tile] = i + 1
+
 
 tiles_compressed = np.zeros(TILES, dtype=np.uint8)
 compressed_list = [
@@ -108,6 +142,7 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
     cartridge_title = "SUPER MARIOLAN"
     tiles_compressed = tiles_compressed
     tiles_minimal = tiles_minimal
+    tiles_mario = tiles_mario
 
     def __init__(self, *args, **kwargs):
         self.shape = (20, 16)
@@ -266,6 +301,58 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
         PyBoyGameWrapper.reset_game(self, timer_div=timer_div)
 
         self._set_timer_div(timer_div)
+
+    def custom_minimal(self):
+        space = self._game_area_np("minimal")
+
+        # Mario remains 1
+        # Assuming '1' uniquely identifies Mario; adjust if necessary
+        space = np.where(space == 1, 1, space)
+
+        # Enemies become -1
+        # '4' represents enemies; adjust the array as necessary for all enemy types
+        space = np.where(np.isin(space, [4]), -1, space)
+
+        # Ground and platforms where Mario can walk become 0.5
+        # Assuming '3' represents ground/platforms; adjust the array as necessary for all types
+        space = np.where(np.isin(space, [3]), 0.5, space)
+
+        # Power-ups and beneficial items become 0.75
+        # '2' represents power-ups; adjust the array as necessary for all beneficial item types
+        space = np.where(np.isin(space, [2]), 0.75, space)
+
+        return space
+
+    def custom_minimal_enemy(self):
+        space = self.custom_minimal()
+
+        space_mario_as_enemy = np.where(space == 1, 11, space)
+        space_enemies_as_mario = np.where(space_mario_as_enemy == -1, 12, space_mario_as_enemy)
+
+        space_enemies_as_mario = np.where(space_enemies_as_mario == 11, -1, space_enemies_as_mario)
+        space_enemies_as_mario = np.where(space_enemies_as_mario == 12, 1, space_enemies_as_mario)
+
+        space_enemies_as_mario = np.where(space_enemies_as_mario == 0.75, 0, space_enemies_as_mario)
+
+        return space_enemies_as_mario
+
+    def custom_minimal_policy(self):
+        # Process the game area using the existing method to normalize the space
+        space = self.custom_minimal()
+
+        rows, cols = space.shape
+        for col in range(cols):
+            for row in range(rows - 1, 0, -1):  # Start from the bottom row and go upwards
+                if space[row, col] == 0.5:
+                    # Check the two cells above if they are zeros and if the row above exists
+                    if row - 2 >= 0 and space[row - 1, col] == 0 and space[row - 2, col] == 0:
+                        # Update the zeros as required. For example, set them to 1 or any other operation needed
+                        space[row - 1, col] = 1  # Update this line as per your requirement
+                        space[row - 2, col] = 1  # Update this line as per your requirement
+                        # After updating, break to move to the next column as we only update the first two zeros found
+                        break
+
+        return space
 
     def game_area(self):
         """

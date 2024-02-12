@@ -292,7 +292,7 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
 
         # Assign unique values to each category
         # Power-ups (coins)
-        space = np.where(space == 2, 0.75, space)
+        space = np.where(space == 2, 0.80, space)
 
         # Beneficial items (mushroom, heart, star, lever)
         space = np.where(space == 3, 0.85, space)
@@ -304,7 +304,7 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
         space = np.where(space == 5, 0.6, space)
 
         # Pipes
-        space = np.where(space == 6, 0.55, space)
+        space = np.where(space == 6, 0.5, space)
 
         # Easy to kill enemies (goomba, koopa, etc.)
         space = np.where(space == 7, -0.75, space)
@@ -337,7 +337,7 @@ class GameWrapperSuperMarioLand(PyBoyGameWrapper):
         rows, cols = space.shape
 
         # Define the values for ground, pipes, and platforms
-        suitable_tiles = [0.5, 0.55, 0.6]
+        suitable_tiles = [0.5, 0.6]
 
         # Scan from right to left, looking for the first suitable position
         for col in range(cols - 1, -1, -1):

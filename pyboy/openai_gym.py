@@ -95,7 +95,7 @@ class PyBoyGymEnv(Env):
         if observation_type == "raw":
             screen = np.asarray(self.pyboy.botsupport_manager().screen().screen_ndarray())
             self.observation_space = Box(low=0, high=255, shape=screen.shape, dtype=np.uint8)
-        elif observation_type in ["tiles", "compressed", "minimal"]:
+        elif observation_type in ["tiles", "compressed", "minimal", "mario"]:
             size_ids = TILES
             if observation_type == "compressed":
                 try:

@@ -111,6 +111,13 @@ class PyBoyGymEnv(Env):
                     raise AttributeError(
                         "You need to add the tiles_minimal attibute to the game_wrapper to use the minimal observation_type"
                     )
+            elif observation_type == "mario":
+                try:
+                    size_ids = np.max(self.game_wrapper.tiles_mario) + 1
+                except AttributeError:
+                    raise AttributeError(
+                        "You need to add the tiles_minimal attibute to the game_wrapper to use the minimal observation_type"
+                    )
             nvec = size_ids * np.ones(self.game_wrapper.shape)
             self.observation_space = MultiDiscrete(nvec)
         else:
